@@ -6,12 +6,72 @@ import './screens/meal_detail_screen.dart';
 import './screens/tabs_screen.dart';
 import './screens/filters_screen.dart';
 
+import './models/meal.dart';
+
+import './dummy_data.dart';
+
 void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   // This widget is the root of your application.
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Map<String, bool> filters = {
+    'gluten': false,
+    'lactose': false,
+    'vegan': false,
+    'vegetarian': false,
+  };
+
+  List<Meal> availableMeals = DUMMY_MEALS;
+  List<Meal> favouriteMeals = [];
+
+  void _setFilters(Map<String, bool> filtersData) {
+    setState(() {
+      filters = filtersData;
+      availableMeals = DUMMY_MEALS.where((Meal meal) {
+        if (filters['gluten'] && !meal.isGlutenFree) {
+          return false;
+        }
+
+        if (filters['lactose'] && !meal.isLactoseFree) {
+          return false;
+        }
+
+        if (filters['vegan'] && !meal.isVegan) {
+          return false;
+        }
+
+        if (filters['vegetarian'] && !meal.isVegetarian) {
+          return false;
+        }
+
+        return true;
+      }).toList();
+    });
+  }
+
+  // TO DO
+  // void _toggleFavorite(String mealId) {
+  //   final index = favouriteMeals.indexWhere((element) => mealId == element.id);
+
+  //   if (index > -1) {
+  //     setState(() {
+  //       favouriteMeals.removeAt(index);
+  //     });
+  //   } else {
+  //     setState(() {
+  //       favouriteMeals
+  //           .add(DUMMY_MEALS.firstWhere((element) => mealId == element.id));
+  //     });
+  //   }
+  // }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -33,10 +93,11 @@ class MyApp extends StatelessWidget {
               body2: TextStyle(color: Color.fromRGBO(20, 51, 51, 1)))),
       initialRoute: '/', //optional
       routes: {
-        '/': (_) => TabsScreen(),
-        CategoryMealsScreen.routeName: (_) => CategoryMealsScreen(),
+        '/': (_) => TabsScreen(favouriteMeals),
+        CategoryMealsScreen.routeName: (_) =>
+            CategoryMealsScreen(availableMeals),
         MealDetailScreen.routeName: (_) => MealDetailScreen(),
-        FiltersScreen.routeName: (_) => FiltersScreen(),
+        FiltersScreen.routeName: (_) => FiltersScreen(_setFilters, filters),
       },
       // onGenerateRoute: (settings) {
       //   return MaterialPageRoute(builder: (ctx) => CategoriesScreen());
@@ -45,23 +106,5 @@ class MyApp extends StatelessWidget {
         return MaterialPageRoute(builder: (ctx) => CategoriesScreen());
       },
     );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key}) : super(key: key);
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('asdsad'),
-        ),
-        body: Text('Meals App'));
   }
 }
